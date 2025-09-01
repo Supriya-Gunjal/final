@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="grid">
+    <div class="stat">
+      <h3>Total Questions</h3>
+      <p>{{ summary.total }}</p>
+    </div>
+    <div class="stat">
+      <h3>Correct</h3>
+      <p>{{ summary.correct }}</p>
+    </div>
+    <div class="stat">
+      <h3>Incorrect</h3>
+      <p>{{ summary.incorrect }}</p>
+    </div>
+    <div class="stat">
+      <h3>Unanswered (NA)</h3>
+      <p>{{ summary.na }}</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>Per-question Breakdown</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Key</th>
+          <th>Student</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in breakdown %}
+          <tr>
+            <td>{{ row.q }}</td>
+            <td>{{ row.key }}</td>
+            <td>{{ row.student }}</td>
+            <td>{{ row.result }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p><a href="{{ url_for('index') }}">Process another OMR</a></p>
+{% endblock %}
