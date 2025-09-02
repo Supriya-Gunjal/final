@@ -1,9 +1,10 @@
-import os, json, re
+import os
+import json
+import re
 from typing import Dict
 from PIL import Image
 import google.generativeai as genai
 
-# Configure once per process
 def _get_model():
     api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -18,38 +19,39 @@ def _extract_json_block(text: str) -> dict:
         return json.loads(text)
     except Exception:
         pass
+
     m = re.search(r"```(?:json)?\s*({[\s\S]*?})\s*```", text, re.IGNORECASE)
     if m:
         try:
             return json.loads(m.group(1))
         except Exception:
             pass
+
     m2 = re.search(r"({[\s\S]*})", text)
     if m2:
         try:
             return json.loads(m2.group(1))
         except Exception:
             pass
+
     raise ValueError("Could not parse JSON from model response.")
 
 def extract_answers_from_omr(image_path: str, num_questions: int) -> Dict[int, str]:
     """
     Return {1:'A'|'B'|'C'|'D'|'NA', ...} for questions 1..num_questions.
-    Handles multiple bubbles → NA.
-    Handles half-filled bubbles → NA.
+    - Uses Gemini multimodal model to read the image.
+    - Interprets "half" / multiple marks → "NA".
     """
     model = _get_model()
 
-    prompt = f"""
-You are an OMR sheet bubble reader.
-
+    prompt = f"""You are an OMR sheet bubble reader.
 TASK:
 - For each visible question, detect which options [A, B, C, D] are marked.
 - Distinguish between:
-  - Fully filled bubble → ["A"]
-  - Multiple fully filled bubbles → ["A","C"]
-  - No bubble filled → []
-  - Half-filled, faint, partially shaded, dotted, or incomplete bubble → ["half"]
+  - Fully filled bubble -> ["A"]
+  - Multiple fully filled bubbles -> ["A","C"]
+  - No bubble filled -> []
+  - Half-filled, faint, partially shaded, dotted, or incomplete bubble -> ["half"]
 
 STRICT RULE:
 - If you are unsure whether a bubble is completely filled, classify it as ["half"].
@@ -63,15 +65,14 @@ RULES:
       "1": ["A"],
       "2": ["B","C"],
       "3": [],
-      "4": ["half"],
-      ...
+      "4": ["half"]
     }}
   }}
 - If more than {num_questions} questions visible, include only the first {num_questions}.
 """
 
-
     img = Image.open(image_path)
+
     response = model.generate_content([prompt, img])
 
     try:
@@ -83,6 +84,7 @@ RULES:
                 if getattr(p, 'text', None):
                     parts.append(p.text)
         text = "\n".join(parts).strip()
+
     if not text:
         raise RuntimeError("Empty response from Gemini.")
 
@@ -100,18 +102,36 @@ RULES:
         else:
             raw_list = []
 
-        # Clean list: allow only A-D, map "half" → NA
         cleaned = []
         for opt in raw_list:
             if opt in {"A", "B", "C", "D"}:
                 cleaned.append(opt)
             elif str(opt).lower() == "half":
                 cleaned.append("NA")
-        raw_list = cleaned
 
-        if len(raw_list) == 1 and raw_list[0] in {"A", "B", "C", "D"}:
-            normalized[i] = raw_list[0]
+        if len(cleaned) == 1 and cleaned[0] in {"A", "B", "C", "D"}:
+            normalized[i] = cleaned[0]
         else:
             normalized[i] = "NA"
 
     return normalized
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

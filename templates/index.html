@@ -1,22 +1,38 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
-  <form action="{{ url_for('index') }}" method="post" enctype="multipart/form-data">
-    <div class="row">
-      <div>
-        <label for="omr_image">Student OMR sheet image (PNG/JPG/WebP)</label>
-        <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" name="omr_image" id="omr_image" required>
-      </div>
-      <div>
-        <label for="num_questions">Number of Questions</label>
-        <input type="number" min="1" max="300" value="100" name="num_questions" id="num_questions" required>
-      </div>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OMR Scoring (Flask + Gemini)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h2 class="mb-4">OMR Scoring (Flask + Gemini)</h2>
 
-    <label for="answer_key">Answer Key (see README for formats)</label>
-    <textarea name="answer_key" id="answer_key" placeholder="A\nB\nC\nD\n..."></textarea>
+    <!-- ✅ Always posts to /api/omr/score and opens JSON in new tab -->
+    <form id="omrForm" action="/api/omr/score" method="post" enctype="multipart/form-data" target="_blank">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Student OMR sheet image (PNG/JPG/WebP)</label>
+          <input type="file" name="omr_image" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Number of Questions</label>
+          <input type="number" name="num_questions" class="form-control" value="100" min="1" max="300">
+        </div>
+      </div>
 
-    <button type="submit">Process OMR</button>
-  </form>
-</div>
-{% endblock %}
+      <div class="mb-3">
+        <label class="form-label">Answer Key (optional)</label>
+        <textarea name="answer_key" rows="5" class="form-control" placeholder="A\nB\nC\nD\n..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Process OMR</button>
+    </form>
+
+    <p class="mt-3 text-muted">
+      ⚡ This form will open <code>/api/omr/score</code> in a new tab and return raw JSON results.
+    </p>
+  </div>
+</body>
+</html>
