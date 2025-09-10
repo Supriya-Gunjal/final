@@ -1,41 +1,3 @@
-import os
-import json
-import re
-from typing import Dict
-from PIL import Image
-import google.generativeai as genai
-
-def _get_model():
-    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("No API key. Set GOOGLE_API_KEY (preferred) or GEMINI_API_KEY in environment or .env")
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-    return genai.GenerativeModel(model_name)
-
-def _extract_json_block(text: str) -> dict:
-    """Try to extract a JSON object from the model text response."""
-    try:
-        return json.loads(text)
-    except Exception:
-        pass
-
-    m = re.search(r"```(?:json)?\s*({[\s\S]*?})\s*```", text, re.IGNORECASE)
-    if m:
-        try:
-            return json.loads(m.group(1))
-        except Exception:
-            pass
-
-    m2 = re.search(r"({[\s\S]*})", text)
-    if m2:
-        try:
-            return json.loads(m2.group(1))
-        except Exception:
-            pass
-
-    raise ValueError("Could not parse JSON from model response.")
-
 import os, json, re
 from typing import Dict
 from PIL import Image
@@ -85,7 +47,6 @@ def extract_answers_from_omr(image_path: str, num_questions: int) -> Dict[int, s
       - One bubble filled → ["A"]
       - Multiple bubbles filled → ["A","C"]
       - None filled → []
-      - Half-filled, faint, partially shaded, dotted, or incomplete bubble -> ["half"]
 
     RULES:
     - Output ONLY valid JSON.
@@ -95,7 +56,6 @@ def extract_answers_from_omr(image_path: str, num_questions: int) -> Dict[int, s
           "1": ["A"],
           "2": ["B","C"],
           "3": [],
-          "4": ["half"]
           ...
         }}
       }}
