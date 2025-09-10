@@ -9,7 +9,7 @@
   <div class="container py-5">
     <h2 class="mb-4">OMR Scoring (Flask + Gemini)</h2>
 
-    <!-- ✅ Always posts to /api/omr/score and opens JSON in new tab -->
+    <!-- ✅ Correct field names -->
     <form id="omrForm" action="/api/omr/score" method="post" enctype="multipart/form-data" target="_blank">
       <div class="row mb-3">
         <div class="col-md-6">
@@ -24,7 +24,7 @@
 
       <div class="mb-3">
         <label class="form-label">Answer Key (optional)</label>
-        <textarea name="answer_key" rows="5" class="form-control" placeholder="A\nB\nC\nD\n..."></textarea>
+        <input type="file" name="answer_key_omr" class="form-control">
       </div>
 
       <button type="submit" class="btn btn-primary">Process OMR</button>
